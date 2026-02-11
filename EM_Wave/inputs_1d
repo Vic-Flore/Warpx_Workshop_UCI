@@ -1,0 +1,56 @@
+#################################
+####### GENERAL PARAMETERS ######
+#################################
+max_step = 2100
+amr.n_cell = 2048
+amr.max_grid_size = 512   # maximum size of each AMReX box, used to decompose the domain
+amr.blocking_factor = 64 # minimum size of each AMReX box, used to decompose the domain
+geometry.dims = 1
+geometry.prob_lo =  0.e-6    # physical domain
+geometry.prob_hi =   110.e-6
+amr.max_level = 0 # Maximum level in hierarchy (1 might be unstable, >1 is not supported)
+
+#################################
+####### Boundary condition ######
+#################################
+boundary.field_lo = absorbing_silver_mueller
+boundary.field_hi = absorbing_silver_mueller
+
+my_constants.nc = 1.1148542184447434e+27    #m^-3
+my_constants.ne = 0.007*nc    #m^-3
+#################################
+############ NUMERICS ###########
+#################################
+warpx.verbose = 1
+warpx.do_dive_cleaning = 0
+warpx.use_filter = 1
+warpx.cfl = 0.999 # if 1., the time step is set to its CFL limit
+warpx.do_dynamic_scheduling = 0
+warpx.serialize_initial_conditions = 1
+
+# Order of particle shape factors
+algo.particle_shape = 3
+
+#################################
+############ LASER ##############
+#################################
+lasers.names = laser1
+laser1.profile = Gaussian
+laser1.position = 0. 0. 2.e-6        # This point is on the laser plane
+laser1.direction = 0. 0. 1.           # The plane normal direction
+laser1.polarization = 0. 1. 0.           # The main polarization vector
+laser1.a0 = 0.5             # Maximum amplitude of the laser field (in V/m)
+laser1.profile_waist = 5.e-6             # The waist of the laser (in m)
+laser1.profile_duration = 30.e-15/sqrt(2*log(2))        # The duration of the laser (in s)
+laser1.profile_t_peak = 70.e-15          # Time at which the laser reaches its peak (in s)
+laser1.profile_focal_distance = 30.e-6  # Focal distance from the antenna (in m)
+laser1.wavelength = 1e-6               # The wavelength of the laser (in m)
+
+# Diagnostics
+diagnostics.diags_names = diag1
+diag1.intervals = 100
+diag1.diag_type = Full
+diag1.fields_to_plot = Ey 
+diag1.format = openpmd
+diag1.openpmd_backend = h5
+
