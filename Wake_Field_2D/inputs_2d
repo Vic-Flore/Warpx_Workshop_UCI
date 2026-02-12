@@ -1,0 +1,123 @@
+#################################
+####### GENERAL PARAMETERS ######
+#################################
+max_step  = 2000
+amr.n_cell = 512 512
+amr.blocking_factor = 64
+amr.max_grid_size_x = 128
+amr.max_grid_size_y = 64  # this is confusingly named and means z in 2D
+amr.max_level        = 0
+geometry.dims        = 2
+geometry.prob_lo = -15.e-6   -15.e-6     # physical domain x,z
+geometry.prob_hi =  15.e-6   15.e-6
+
+#################################
+###### Boundary condition #######
+#################################
+boundary.field_lo = absorbing_silver_mueller absorbing_silver_mueller
+boundary.field_hi = absorbing_silver_mueller absorbing_silver_mueller
+
+#################################
+############ CONSTANTS ###########
+#################################
+my_constants.lam = 0.8e-6       # wavelength m 
+my_constants.nc = 1.74e27       # Critical density m^-3
+my_constants.a0 = 1.5             # normalized vector potential
+my_constants.ne_0 = 0.0065*nc    
+my_constants.ne_1 = 0.0115*nc     
+my_constants.w0 = 5e-6                          
+my_constants.tau = 16e-15       
+my_constants.xmax = 14.e-6      # max transverse length of channel 
+my_constants.xmin = -14.e-6      # start transverse length of channel 
+my_constants.vg = (1 - (0.5*(0.0065)))         # Group velocity normalized to speed of light
+my_constants.z1 = -3.e-6 
+
+my_constants.K = 3/abs(z1)
+
+my_constants.z_acc_end = 2.3e-3
+
+
+#################################
+####### WINDOW##################
+#################################
+warpx.do_moving_window = 1
+warpx.moving_window_dir = z
+warpx.moving_window_v = vg # units of speed of light
+warpx.start_moving_window_step = 750
+
+
+
+#################################
+############ NUMERICS ###########
+#################################
+warpx.verbose = 1
+warpx.cfl = 0.999 # if 1., the time step is set to its CFL limit
+# Order of particle shape factors
+algo.particle_shape = 3
+
+#################################
+############ PLASMA #############
+#################################
+particles.species_names = electrons protons
+
+electrons.charge = -q_e
+electrons.mass = m_e
+electrons.injection_style = NUniformPerCell
+electrons.num_particles_per_cell_each_dim = 2 2
+electrons.momentum_distribution_type = "at_rest"
+electrons.xmin = xmin
+electrons.xmax = xmax
+electrons.zmin = z1
+electrons.zmax = z_acc_end
+electrons.do_continuous_injection = 1
+electrons.profile = parse_density_function
+electrons.density_function(x,y,z) = "if( (z >= z1) and (z <0),ne_1*(2.0/(1.0 + exp(-K*(z - z1))) - 1.0),if( (z >= 0) and (z <= z_acc_end),ne_0,0.0))"
+
+protons.charge = q_e
+protons.mass = m_p
+protons.injection_style = NUniformPerCell
+protons.num_particles_per_cell_each_dim = 1 1
+protons.momentum_distribution_type = "at_rest"
+protons.xmin = xmin
+protons.xmax = xmax
+protons.zmin = z1
+protons.zmax = z_acc_end
+protons.do_continuous_injection = 1
+protons.profile = parse_density_function
+protons.density_function(x,y,z) = "if( (z >= z1) and (z <0),ne_1*(2.0/(1.0 + exp(-K*(z - z1))) - 1.0),if( (z >= 0) and (z <= z_acc_end),ne_0,0.0))"
+
+
+#################################
+############ LASER ##############
+#################################
+lasers.names = laser1
+laser1.profile = Gaussian
+laser1.position = 0. 0. -14.e-6        # This point is on the laser plane
+laser1.direction = 0. 0. 1.           # The plane normal direction
+laser1.polarization = 0. 1. 0.           # The main polarization vector
+laser1.a0 = a0             # Maximum amplitude of the laser field (in V/m)
+laser1.profile_waist = w0   # The waist of the laser (in m)
+laser1.profile_duration = tau     # The duration of the laser (in s)
+laser1.profile_t_peak = 40.e-15          # Time at which the laser reaches its peak (in s)
+laser1.profile_focal_distance = 9.e-6  # Focal distance from the antenna (in m)
+laser1.wavelength = lam              # The wavelength of the laser (in m)
+
+#################################
+############ DIAGNOSTICS ##############
+#################################
+diagnostics.diags_names = diag1 diag2
+diag1.intervals = 200
+diag1.diag_type = Full
+diag1.write_species = 0
+diag1.fields_to_plot = Ey Ex Ez rho_electrons
+diag1.format = openpmd
+diag1.openpmd_backend = h5
+
+diag2.intervals = 200
+diag2.write_species = 1
+diag2.diag_type = Full
+diag2.electrons.variables = w x z uz ux 
+diag2.format = openpmd
+diag2.openpmd_backend = h5
+
+
