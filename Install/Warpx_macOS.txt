@@ -1,0 +1,109 @@
+# move to bash shell
+chsh -s /bin/bash
+# close and open shell again
+echo $SHELL
+# Install Xcode 
+gcc
+# a window will pop up just follow the instructions
+# close and reopen terminal 
+
+#Install homebrew
+https://brew.sh/ 
+# Run
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# add the following to bash_profile Note change username to yours
+echo >> /Users/username/.bash_profile
+echo 'eval "$(/opt/homebrew/bin/brew shellenv bash)"' >> /Users/username/.bash_profile
+eval "$(/opt/homebrew/bin/brew shellenv bash)"
+
+brew update
+brew tap openpmd/openpmd
+brew install adios2      # for openPMD
+brew install ccache
+brew install cmake
+brew install fftw        # for PSATD
+brew install git
+brew install hdf5-mpi    # for openPMD
+brew install libomp
+brew unlink gcc
+brew link --force libomp
+brew install pkg-config  # for fftw
+brew install open-mpi
+brew install openblas    # for PSATD in RZ
+brew install openpmd-api # for openPMD
+
+# move into bash_profile
+vim ~/.bash_profile
+
+# add the following, i for edit then save and quit via :wq
+
+# Homebrew
+eval "$(/opt/homebrew/bin/brew shellenv)"
+# Compilers
+export CC=$(which clang)
+export CXX=$(which clang++)
+export FC=$(which gfortran)
+# Optional hints for CMake
+export HDF5_ROOT=$(brew --prefix hdf5-mpi)
+export FFTW_ROOT=$(brew --prefix fftw)
+export MPI_ROOT=$(brew --prefix open-mpi)
+# outside vim activate your bash
+source ~/.bash_profile
+
+# clone repo
+git clone https://github.com/BLAST-WarpX/warpx.git $HOME/src/warpx
+
+# move into directory
+cd src/warpx/
+
+# make the code
+cmake -S . -B build -DWarpX_DIMS="1;2;3"
+
+# build the exe
+cmake --build build -j 4
+
+# verify installation
+cd build/bin
+ls
+
+# You should see the following executables 
+warpx.1d
+warpx.1d.MPI.OMP.DP.PDP.OPMD.EB.QED
+warpx.2d
+warpx.2d.MPI.OMP.DP.PDP.OPMD.EB.QED
+warpx.3d
+warpx.3d.MPI.OMP.DP.PDP.OPMD.EB.QED
+
+# The code is now built, you will not have to do this again 
+# Setting a Python Environment 
+
+# creat virtual env
+conda env list
+conda create -n warpx_env python=3.12
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install openpmd-viewer
+python -m pip install jupyter
+
+
+
+
+# Open VS code 
+Running a simulation
+
+
+# You can download the Warpx_Workshop_UCI the .sh file will need to be edited for your machine
+# These are the instructions to run the simulation on my machine
+
+#!/bin/bash
+source ~/.bash_profile
+# compilers 
+export CC=$(which clang)
+export CXX=$(which clang++)
+export FC=$(which gfortran)
+# path to executable 
+EXE=/Users/quirkypurple/src/warpx/build/bin/warpx.3d
+INPUTS=/Users/quirkypurple/Warpx_Sims/inputs_3d
+# run
+mpirun -np 1 ${EXE} ${INPUTS} > output.txt
+

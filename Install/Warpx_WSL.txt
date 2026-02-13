@@ -1,0 +1,153 @@
+Download Ubuntu 22.04.5 LTS
+Click open
+
+# Good for snapshots/backups 
+wsl --export Ubuntu-22.04 UbuntuWarpX.tar
+
+# Create a directory and import the distro under a custom name 
+mkdir C:\WSL\WarpXEnv
+
+# import 
+wsl --import UbuntuWarpX C:\WSL\WarpXEnv UbuntuWarpX.tar
+
+# Open the distro
+wsl -d UbuntuWarpX
+
+# Creat non root user 
+adduser warpxuser
+usermod -aG sudo warpxuser
+
+# Log into the distro as default setting !
+echo "[user]" >> /etc/wsl.conf
+echo "default=warpxuser" >> /etc/wsl.conf
+
+# Exit and shutdown 
+exit
+wsl --shutdown
+
+(All done Now we install brew Install brew)
+
+# Open you linux distro
+wsl -d UbuntuWarpX
+sudo apt update
+sudo apt install build-essential procps curl file git -y
+# download brew 
+https://brew.sh/ 
+
+
+# run commands Note change username to yours
+echo >> /home/username/.bashrc
+echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv bash)"' >> /home/username/.bashrc
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv bash)"
+
+
+# Check the bashrc 
+vim ~/.bashrc
+
+# call the doctor 
+ brew doctor
+
+# check version
+brew --version
+
+# install dependencies  
+brew update
+brew tap openpmd/openpmd
+brew install adios2      # for openPMD
+brew install ccache
+brew install cmake
+brew install fftw        # for PSATD
+brew install git
+brew install hdf5-mpi    # for openPMD
+brew install pkg-config  # for fftw
+brew install open-mpi
+brew install openblas    # for PSATD in RZ
+brew install openpmd-api # for openPMD
+
+# check gcc
+ls /home/linuxbrew/.linuxbrew/bin | grep gcc
+
+# Open bashrc file 
+vim ~/.bashrc
+
+
+
+
+
+# add to bashrc by clicking i, when done :wq
+export CC=/home/linuxbrew/.linuxbrew/bin/gcc-15
+export CXX=/home/linuxbrew/.linuxbrew/bin/g++-15
+export LD_LIBRARY_PATH="/home/linuxbrew/.linuxbrew/lib:$LD_LIBRARY_PATH"
+export PATH="/home/linuxbrew/.linuxbrew/opt/ccache/libexec:$PATH"
+export PATH="/home/linuxbrew/.linuxbrew/opt/binutils/bin:$PATH"
+
+# reload bashrc file
+source ~/.bashrc
+
+# check that its active
+$CC --version
+
+# clone the repo
+git clone https://github.com/BLAST-WarpX/warpx.git $HOME/src/warpx
+
+# make the code 
+cmake -S . -B build -DWarpX_DIMS="1;2;3" 
+
+# build the code
+cmake --build build -j 4
+
+# verify installation
+
+cd build/bin
+
+# you should see
+warpx.1d
+warpx.1d.MPI.OMP.DP.PDP.OPMD.EB.QED
+warpx.2d
+warpx.2d.MPI.OMP.DP.PDP.OPMD.EB.QED
+warpx.3d
+warpx.3d.MPI.OMP.DP.PDP.OPMD.EB.QED
+
+Setting a Python Environment 
+
+
+
+
+cd ~
+mkdir -p ~/envs
+cd ~/envs
+python3 -m venv warpx_env
+cd ~
+source ~/envs/warpx_env/bin/activate
+
+pip install --upgrade pip setuptools wheel
+pip install openpmd-viewer
+pip install jupyter
+
+# open VSCode 
+code . 
+
+
+# Running a simulation
+# You can download the Warpx_Workshop_UCI the .sh file will need to be edited for your machine
+# These are the instructions to run the simulation on my machine
+
+#!/bin/bash
+
+# load environment
+source ~/.bashrc
+
+# --- Set OpenMP threads ---
+export OMP_NUM_THREADS=4
+
+# --- Run Paths ---
+EXE=/home/warpxuser/src/warpx/build/bin/warpx.3d
+INPUTS=/home/warpxuser/warpx_sims/inputs_3d
+
+# --- Launch with MPI, logging stdout and stderr ---
+mpirun -np 4 ${EXE} ${INPUTS} > output.txt
+
+
+
+
+
